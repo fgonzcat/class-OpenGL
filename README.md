@@ -3,5 +3,5 @@ A simple class to create OpenGL-based C++ codes
 
 ## Compile on MacOS using
 ```
-g++ -Wall -o example class-OpenGL.cc  -framework OpenGL -framework GLUT -Wno-deprecated
+g++ -o example -Wall  example.cc class-OpenGL.cc -std=c++11   -framework OpenGL -framework GLUT -Wno-deprecated -DGL_SILENCE_DEPRECATION
 ```
