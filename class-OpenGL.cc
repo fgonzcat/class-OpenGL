@@ -21,6 +21,7 @@ void (*OpenGL_Display::keyboard_Function)(unsigned char key, int x, int y) = nul
 void (*OpenGL_Display::specialkeys_Function)(int key, int x, int y) = nullptr;
 void (*OpenGL_Display::idle_Function)(void) = nullptr;
 void (*OpenGL_Display::mouse_Function)(int button, int state, int x, int y) = nullptr;
+void (*OpenGL_Display::mousemotion_Function)(int x, int y) = nullptr;
 
 
 
@@ -45,13 +46,15 @@ void OpenGL_Display::CallOpenGLMainFunctions(int argc, char** argv)
  
  InitializeScene(initialize_Function);          // Passing either nullptr or a function
  glutIdleFunc(IdleFunction);                    // This will call glutDisplayFunc repeteadly
- glutDisplayFunc(display_Function);             // This function draws EVERYTHING 
+ //glutDisplayFunc(display_Function);           // This function draws EVERYTHING 
+ //glutDisplayFunc(DrawOneVertex);              // Dummy display 
+ glutDisplayFunc(Draw);                         // This function draws EVERYTHING that  "Draw" indicates
  glutReshapeFunc(reshape_Function);             // Redefine the geometry of the scene
  glutKeyboardFunc(Keyboard);                    // Redefine keyboard function 
  glutSpecialFunc(SpecialKeys);
  glutMouseFunc(Mouse);                          // Redefine mouse function
- //glutDisplayFunc(DrawOneVertex);              // Dibuja en pantalla lo que la función "Draw" indique.
- glutMainLoop();                               // Infinite loop over the above function 
+ glutMotionFunc(MouseMotion);                   // Redefine motion function
+ glutMainLoop();                                // Infinite loop over the above function 
 
 }
 
@@ -73,6 +76,12 @@ void OpenGL_Display::InitializeScene(void (*init_func)() ){
  }
 }
 
+void OpenGL_Display::EmptyWindow(void)
+{
+ glClear(GL_COLOR_BUFFER_BIT); // Clears the screen 
+ glFlush();                    // Sends info to the screen (draw)
+}
+
 void OpenGL_Display::DrawOneVertex(void)
 {
  glClear(GL_COLOR_BUFFER_BIT); // Clear the screen  
@@ -81,11 +90,17 @@ void OpenGL_Display::DrawOneVertex(void)
    glVertex2d( 0, 0);
  	glPointSize(200);
  glEnd();
-//		glutPostRedisplay();  //  function is used to mark the current window as needing to be redisplayed. It essentially triggers a call to the display function (registered with glutDisplayFunc)
-  std::cout << "Swapping Buffers\n";
-	glutSwapBuffers();  // Clears the screen for glutIdleFunc 
+ //	glutPostRedisplay();  //  function is used to mark the current window as needing to be redisplayed. It essentially triggers a call to the display function (registered with glutDisplayFunc)
+ //std::cout << "Swapping Buffers\n";
+ glutSwapBuffers();  // Clears the screen for glutIdleFunc 
 }
 
+void OpenGL_Display::Draw()
+{
+ if (display_Function != nullptr)  { display_Function(); }
+ //else                       { DrawOneVertex(); }
+ else                       { EmptyWindow(); }
+}
 
 void OpenGL_Display::Keyboard(unsigned char key, int x, int y)
 {
@@ -122,6 +137,27 @@ void OpenGL_Display::Mouse(int button, int state, int x, int y)
   //}
  }
 }
+
+void OpenGL_Display::MouseMotion(int x, int y)
+{
+ if (mousemotion_Function != nullptr)  mousemotion_Function(x, y);
+ else{
+  //switch(button)
+  //{
+  // case GLUT_LEFT_BUTTON:   Buttons[0] = (state==GLUT_DOWN)?1:0;
+  //  if (state==GLUT_UP)
+  //  {
+  //   RotUp=false; RotDown=false; RotLeft=false; RotRight=false; Zup=false; Zdown=false;
+  //   (sseg->disp)->MakeZoomer(zoomID);
+  //  }
+  //  break;
+  // case GLUT_MIDDLE_BUTTON:     Buttons[1] = (state==GLUT_DOWN)?1:0;    break;
+  // case GLUT_RIGHT_BUTTON:      Buttons[2] = (state==GLUT_DOWN)?1:0;    break;
+  // default:
+  //  break;
+  //}
+ }
+}
  
 void OpenGL_Display::SpecialKeys(int key, int x, int y)
 {
@@ -141,6 +177,7 @@ void OpenGL_Display::IdleFunction()
  if (idle_Function != nullptr)  { idle_Function(); }
  else                       { glutPostRedisplay(); }
 }
+
 
 void OpenGL_Display::SaveFramePNG(const std::string& filename, int width, int height, const std::vector<unsigned char>& pixels) {
     FILE* file = fopen(filename.c_str(), "wb");
